@@ -1,0 +1,144 @@
+SELECT *
+FROM `Covid_Deaths.CovidDeaths`
+WHERE continent IS NOT NULL 
+ORDER BY date, location;
+
+SELECT location, date, total_cases, new_cases, total_deaths, population
+FROM `Covid_Deaths.CovidDeaths`
+WHERE continent IS NOT NULL 
+ORDER BY location, date;
+
+-- Query 1: Infection and Mortality Rates by Country
+--Total Cases vs Total Deaths (Likelihood of Dying if You Contract COVID-19)
+SELECT location, date, total_cases, total_deaths, 
+       CASE 
+           WHEN COALESCE(total_cases, 0) = 0 THEN 0
+           ELSE (COALESCE(total_deaths, 0) / COALESCE(total_cases, 0)) * 100 
+       END AS DeathPercentage
+FROM `Covid_Deaths.CovidDeaths`
+ WHERE continent IS NOT NULL 
+ORDER BY location, date;
+
+--Query 2: Total cases, deaths, Deathpercentage per country
+SELECT location, 
+       SUM(total_cases) AS total_cases, 
+       SUM(total_deaths) AS total_deaths, 
+       CASE 
+           WHEN SUM(COALESCE(total_cases, 0)) = 0 THEN 0
+           ELSE (SUM(COALESCE(total_deaths, 0)) / SUM(COALESCE(total_cases, 0))) * 100 
+       END AS DeathPercentage
+FROM `Covid_Deaths.CovidDeaths`
+WHERE continent IS NOT NULL 
+GROUP BY location
+ORDER BY location;
+
+-- Query 3: Infection Rate vs Population
+--total Cases vs Population (Percentage of Population Infected with COVID-19)
+SELECT location, date, population, total_cases,  
+       CASE 
+           WHEN COALESCE(population, 0) = 0 THEN 0
+           ELSE (COALESCE(total_cases, 0) / COALESCE(population, 0)) * 100 
+       END AS PercentPopulationInfected
+FROM `Covid_Deaths.CovidDeaths`
+ORDER BY location, date;
+
+-- Query 4: Countries with the Highest Infection Rate
+--Countries with Highest Infection Rate Compared to Population
+SELECT location, population, 
+       MAX(total_cases) AS HighestInfectionCount,  
+       MAX(
+           CASE 
+               WHEN COALESCE(population, 0) = 0 THEN 0
+               ELSE (COALESCE(total_cases, 0) / COALESCE(population, 0)) * 100 
+           END
+       ) AS PercentPopulationInfected
+FROM `Covid_Deaths.CovidDeaths`
+GROUP BY location, population
+ORDER BY PercentPopulationInfected DESC;
+
+
+-- Query 5: Countries with the Highest Death Count
+-- Countries with Highest Death Count per Population
+SELECT location, 
+       MAX(CAST(COALESCE(total_deaths, 0) AS INT64)) AS TotalDeathCount
+FROM `Covid_Deaths.CovidDeaths`
+WHERE continent IS NOT NULL 
+GROUP BY location
+ORDER BY TotalDeathCount DESC;
+
+-- Query 6: Continental Analysis of Death Counts
+--Showing Continents with the Highest Death Count per Population
+SELECT continent, MAX(CAST(total_deaths AS INT64)) AS TotalDeathCount
+FROM `Covid_Deaths.CovidDeaths`
+WHERE continent IS NOT NULL 
+GROUP BY continent
+ORDER BY TotalDeathCount DESC;
+
+-- Query 7: Global COVID-19 Numbers
+--Global Numbers
+SELECT SUM(new_cases) AS total_cases, 
+       SUM(CAST(new_deaths AS INT64)) AS total_deaths, 
+       (SUM(CAST(new_deaths AS INT64)) / SUM(new_cases)) * 100 AS DeathPercentage
+FROM `Covid_Deaths.CovidDeaths`
+WHERE continent IS NOT NULL 
+ORDER BY total_cases, total_deaths;
+
+-- Query 8: Total Population vs Vaccinations
+--Total Population vs Vaccinations (Percentage of Population that Received at Least One COVID Vaccine)
+SELECT dea.continent, dea.location, dea.date, dea.population, 
+       COALESCE(vac.new_vaccinations, 0) AS new_vaccinations,
+       SUM(COALESCE(CAST(vac.new_vaccinations AS INT64), 0)) 
+           OVER (PARTITION BY dea.location ORDER BY dea.date) AS RollingPeopleVaccinated
+--, (RollingPeopleVaccinated / population) * 100 AS VaccinationPercentage
+FROM `Covid_Deaths.CovidDeaths` dea
+JOIN `Covid_vaccinations.CovidVaccinations` vac
+    ON dea.location = vac.location
+    AND dea.date = vac.date
+WHERE dea.continent IS NOT NULL 
+ORDER BY location, date;
+
+--Using CTE to Perform Calculation on Partition By in Previous Query
+WITH PopvsVac AS (
+    SELECT dea.continent, dea.location, dea.date, dea.population, 
+           COALESCE(vac.new_vaccinations, 0) AS new_vaccinations,
+           SUM(COALESCE(CAST(vac.new_vaccinations AS INT64), 0)) 
+               OVER (PARTITION BY dea.location ORDER BY dea.date) AS RollingPeopleVaccinated
+    FROM `Covid_Deaths.CovidDeaths` dea
+    JOIN `Covid_vaccinations.CovidVaccinations` vac
+        ON dea.location = vac.location
+        AND dea.date = vac.date
+    WHERE dea.continent IS NOT NULL
+)
+SELECT *, (RollingPeopleVaccinated / population) * 100 AS VaccinationPercentage
+FROM PopvsVac;
+
+--Using Temp Table to Perform Calculation on Partition By in Previous Query
+CREATE TEMP TABLE PercentPopulationVaccinated AS
+SELECT dea.continent, dea.location, dea.date, dea.population, 
+       COALESCE(vac.new_vaccinations, 0) AS new_vaccinations,
+       SUM(COALESCE(CAST(vac.new_vaccinations AS INT64), 0)) 
+           OVER (PARTITION BY dea.location ORDER BY dea.date) AS RollingPeopleVaccinated
+FROM `Covid_Deaths.CovidDeaths` dea
+JOIN `Covid_vaccinations.CovidVaccinations` vac
+    ON dea.location = vac.location
+    AND dea.date = vac.date;
+
+SELECT *, (RollingPeopleVaccinated / population) * 100 AS VaccinationPercentage
+FROM PercentPopulationVaccinated;
+
+-- Creating View to Store Data for Later Visualizations
+CREATE OR REPLACE VIEW `PercentPopulationVaccinated` AS
+SELECT dea.continent, dea.location, dea.date, dea.population, 
+       COALESCE(vac.new_vaccinations, 0) AS new_vaccinations,
+       SUM(COALESCE(CAST(vac.new_vaccinations AS INT64), 0)) 
+           OVER (PARTITION BY dea.location ORDER BY dea.date) AS RollingPeopleVaccinated,
+       CASE 
+           WHEN COALESCE(dea.population, 0) = 0 THEN 0
+           ELSE (SUM(COALESCE(CAST(vac.new_vaccinations AS INT64), 0)) 
+                OVER (PARTITION BY dea.location ORDER BY dea.date) / dea.population) * 100 
+       END AS VaccinationPercentage
+FROM `Covid_Deaths.CovidDeaths` dea
+JOIN `Covid_vaccinations.CovidVaccinations` vac
+    ON dea.location = vac.location
+    AND dea.date = vac.date
+WHERE dea.continent IS NOT NULL;
