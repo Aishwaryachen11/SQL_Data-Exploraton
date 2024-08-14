@@ -27,20 +27,35 @@ The datasets used in this analysis are focused on COVID-19 statistics, including
 This dataset contains detailed information about COVID-19 cases and deaths reported globally. The key attributes of this dataset include:
 
 iso_code: The ISO 3166-1 alpha-3 code representing each country.
+
 continent: The continent to which the country belongs.
+
 location: The name of the country or region.
+
 date: The date of the reported data.
+
 total_cases: The cumulative number of confirmed COVID-19 cases up to that date.
+
 new_cases: The number of new COVID-19 cases reported on that date.
+
 total_deaths: The cumulative number of deaths attributed to COVID-19 up to that date.
+
 new_deaths: The number of new deaths reported on that date.
+
 population: The total population of the country or region.
+
 population_density: The population density of the country or region (people per square kilometer).
+
 median_age: The median age of the population.
+
 aged_65_older: The percentage of the population aged 65 and older.
+
 gdp_per_capita: The gross domestic product per capita.
+
 life_expectancy: The average life expectancy in years.
+
 hospital_beds_per_thousand: The number of hospital beds per 1,000 people.
+
 human_development_index: The Human Development Index value, which measures a country's average achievements in health, knowledge, and standard of living.
 
 **2. Covid_vaccinations.CovidVaccinations**
@@ -48,17 +63,29 @@ human_development_index: The Human Development Index value, which measures a cou
 This dataset provides data on the vaccination efforts against COVID-19 across the world. The key attributes of this dataset include:
 
 iso_code: The ISO 3166-1 alpha-3 code representing each country.
+
 continent: The continent to which the country belongs.
+
 location: The name of the country or region.
+
 date: The date of the reported data.
+
 total_vaccinations: The cumulative number of COVID-19 vaccine doses administered.
+
 people_vaccinated: The cumulative number of people who have received at least one dose of a COVID-19 vaccine.
+
 people_fully_vaccinated: The cumulative number of people who have been fully vaccinated (received all required doses).
+
 new_vaccinations: The number of new vaccine doses administered on that date.
+
 total_vaccinations_per_hundred: The total number of vaccinations per 100 people in the total population.
+
 people_vaccinated_per_hundred: The number of people vaccinated per 100 people in the total population.
+
 people_fully_vaccinated_per_hundred: The number of people fully vaccinated per 100 people in the total population.
+
 population: The total population of the country or region.
+
 stringency_index: A composite measure based on nine response indicators including school closures, workplace closures, and travel bans, rescaled to a value from 0 to 100 (100 = strictest).
 
 **Data Sources and Credibility**
