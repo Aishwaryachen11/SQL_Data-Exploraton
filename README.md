@@ -20,7 +20,7 @@ Covid_Deaths.CovidDeaths: This table contains data on COVID-19 cases, deaths, an
 Covid_vaccinations.CovidVaccinations: This table includes data on COVID-19 vaccinations across different countries and continents.
 
 **Dataset Description**
-The datasets used in this analysis are focused on COVID-19 statistics, including data on reported cases, deaths, and vaccination progress across different countries and continents. These datasets provide a comprehensive view of the pandemic's impact globally and are crucial for understanding the spread and control of the virus.
+The datasets used in this analysis are focused on COVID-19 statistics which is taken from Our World in Data (https://ourworldindata.org/covid-deaths), including data on reported cases, deaths, and vaccination progress across different countries and continents. These datasets provide a comprehensive view of the pandemic's impact globally and are crucial for understanding the spread and control of the virus.
 
 **1. Covid_Deaths.CovidDeaths**
 
